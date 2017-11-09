@@ -1,9 +1,9 @@
 const request = require('request');
 const config = require('../config.js');
-const bodyParser = require('body-parser');
+// const bodyParser = require('body-parser');
 const db = require('../database/index.js');
 
-let getReposByUsername = (username) => {
+let getReposByUsername = (username, cb) => {
   // TODO - Use the request module to request repos for a specific
   // user from the github API
 
@@ -26,6 +26,7 @@ let getReposByUsername = (username) => {
     .get(options, function (err, res, body) {
       // console.log('err', err);
       console.log('inside api req')
+      console.log('cb def: ', cb);
       let parsedBody = JSON.parse(body);
       // console.log('body : ', parsedBody[0]);
       // console.log('count of items', parsedBody.length);
@@ -38,8 +39,11 @@ let getReposByUsername = (username) => {
           updated_at: repo.updated_at
         };
         repos.push(obj);
+        // console.log('id:', obj.id);
       }
-      // db.save(repos);
+      
+      db.save(repos, cb);
+      
     });
 
 }
