@@ -20,7 +20,7 @@ class App extends React.Component {
       type: 'POST',
       url: '/repos',
       contentType: 'application/json',
-      data: JSON.stringify({searchTerm: term})
+      data: JSON.stringify({username: term})
     });
   }
 
