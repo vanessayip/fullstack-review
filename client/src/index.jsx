@@ -8,14 +8,20 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = { 
-      repos: []
+      repos: [{name: 'bob', url: 'www.github.com/bob/hello'}]
     }
 
   }
 
   search (term) {
     console.log(`${term} was searched`);
-    // TODO
+    console.log('inside app comp search');
+    $.ajax({
+      type: 'POST',
+      url: '/repos',
+      contentType: 'application/json',
+      data: JSON.stringify({searchTerm: term})
+    });
   }
 
   render () {
@@ -24,6 +30,15 @@ class App extends React.Component {
       <RepoList repos={this.state.repos}/>
       <Search onSearch={this.search.bind(this)}/>
     </div>)
+  }
+  
+  componentDidMount() {
+    console.log('inside componentDidMount');
+    $.ajax({
+      type: 'GET',
+      url: '/repos',
+      // data: {searchTerm: term}
+    });  
   }
 }
 
