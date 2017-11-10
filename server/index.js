@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 
 app.use(express.static(__dirname + '/../client/dist'));
 
-app.post('/repos', function (req, res) {
+app.post('/repos', function (req, res, next) {
   // TODO - your code here!
   // This route should take the github username provided
   // and get the repo information from the github API, then
@@ -23,18 +23,22 @@ app.post('/repos', function (req, res) {
   //   console.log('err:', err);
   //   console.log('made it back to post after db save: ', result);
   // });
-  api.getReposByUsername(req.body.username)
+  return api.getReposByUsername(req.body.username)
     .then((repos) => {
       console.log('in post after github request')
       return db.save(repos)
     })
     .then((result) => {
-      console.log(result);
+      console.log('result in post:', result);
+      return db.findTop25();
+    })
+    .then((result) => {
+      console.log('inside post after top25');
+      res.send(result);
     })
     .catch((error) => {
       console.log('error in post: ', error)
     })
-  res.send();
 });
 
 app.get('/repos', function (req, res) {

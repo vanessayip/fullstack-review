@@ -21,7 +21,15 @@ class App extends React.Component {
       url: '/repos',
       contentType: 'application/json',
       data: JSON.stringify({username: term})
-    });
+    })
+    .done((result) => {
+      // console.log('result from get repos: ', result);
+      this.setState({repos: result});
+      console.log('inside state of post: ', this.state.repos);
+    })
+    .fail((error) => {
+      console.log('error from get repos from post:', error);
+    }); 
   }
 
   render () {
@@ -46,7 +54,7 @@ class App extends React.Component {
     })
     .fail((error) => {
       console.log('error from get repos:', error);
-    })  
+    });  
   }
 }
 

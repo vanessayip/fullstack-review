@@ -7,7 +7,7 @@ mongoose.Promise = require('bluebird');
 
 let repoSchema = mongoose.Schema({
   id: {type: Number, unique: true},
-  username: String,
+  username: [{type: String, ref:'User'}],
   updated_at: Date,
   stargazers_count: Number,
   repoUrl: String
@@ -15,40 +15,59 @@ let repoSchema = mongoose.Schema({
 
 let Repo = mongoose.model('Repo', repoSchema);
 
+let userSchema = mongoose.Schema({
+  username: {type: String, unique: true},
+  repos: [{type: Schema.Types.ObjectId, ref: 'Repo'}]
+});
+
+let User = mongoose.model('User', userSchema);
   // This function should save a repo or repos to
   // the MongoDB
-let save = (repos, cb) => {
+module.exports.save = (repos, cb) => {
   console.log('inside save');
   
-  return Promise.all(repos.map(function (aRepo) {
-    var query = {id: aRepo.id};
+  var options = {upsert: true};
   
-    var update = new Repo({
-      id: aRepo.id,
-      username: aRepo.username,
-      updated_at: aRepo.updated_at,
-      repoUrl: aRepo.repoUrl,
-      stargazers_count: aRepo.stargazers_count
-    });
-    
-    var options = {upsert: true};
-    
-    return Repo.findOneAndUpdate(query, update, options).exec()
-      .then((results) => {
-        console.log('success adding: ', results)
-      })
-      .catch((error) => {
-        console.log('error: ', error); 
-      })
-  }))
-  .then((results) => {
-    console.log('success: ', results)
-    return Promise.resolve('made it! done saving')
-  })
-  .catch((error) => {
-    console.log('error, duplicate entries: ', error); 
-    return Promise.resolve('there was an error')
-  })
+  var queryUser = {username: repos[0].username};
+  
+  var updateUser = new User({
+    username: repos[0].username
+  });
+  
+  return User.findOneAndUpdate(queryUser, updateUser, options).exec()
+    .then((result) => {
+      return Promise.all(repos.map(function (aRepo) {
+        var queryRepo = {id: aRepo.id};
+      
+        var updateRepo = new Repo({
+          id: aRepo.id,
+          username: aRepo.username,
+          updated_at: aRepo.updated_at,
+          repoUrl: aRepo.repoUrl,
+          stargazers_count: aRepo.stargazers_count
+        });
+        
+        return Repo.findOneAndUpdate(queryRepo, updateRepo, options).exec()
+          .then((results) => {
+            console.log('success adding: ', results)
+          })
+          .catch((error) => {
+            console.log('error: ', error); 
+          });
+      }))
+    })
+    .catch((error) => {
+      console.log('error, duplicate user entries: ', error); 
+      return Promise.resolve('there was an error')
+    })
+    .then((results) => {
+      console.log('success: ', results)
+      return Promise.resolve('made it! done saving')
+    })
+    .catch((error) => {
+      console.log('error, duplicate repo entries: ', error); 
+      return Promise.resolve('there was an error')
+    })
 }
     //aRepo, an array of repos
     // for (var aRepo of repos) {
@@ -87,4 +106,4 @@ module.exports.findTop25 = function () {
   console.log('inside findtop25');
   return Repo.find().sort({stargazers_count: -1, updated_at: -1}).limit(25);
 }
-module.exports.save = save;
+// module.exports.save = save;
