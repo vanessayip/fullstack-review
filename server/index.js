@@ -1,8 +1,10 @@
 const express = require('express');
 let app = express();
+const Promise = require('bluebird');
 const bodyParser = require('body-parser');
-const api = require('../helpers/github.js');
-
+const api = (require('../helpers/github.js'));
+const db = (require('../database/index.js'));
+// const db = Promise.promisifyAll(require('../database/index.js'));
 
 app.use(bodyParser.json());
 
@@ -16,18 +18,37 @@ app.post('/repos', function (req, res) {
   console.log('inside post /repos');
   console.log('req.body.username:', req.body);
   
-  api.getReposByUsername(req.body.username, function (err, result) {
-    //what to do with the data that comes back
-    console.log('err:', err);
-    console.log('made it back to post after db save: ', result);
-  });
+  // api.getReposByUsername(req.body.username, function (err, result) {
+  //   //what to do with the data that comes back
+  //   console.log('err:', err);
+  //   console.log('made it back to post after db save: ', result);
+  // });
+  api.getReposByUsername(req.body.username)
+    .then((repos) => {
+      console.log('in post after github request')
+      return db.save(repos)
+    })
+    .then((result) => {
+      console.log(result);
+    })
+    .catch((error) => {
+      console.log('error in post: ', error)
+    })
   res.send();
 });
 
 app.get('/repos', function (req, res) {
-  // TODO - your code here!
   // This route should send back the top 25 repos
-  console.log('inside get /repos');
+  console.log('inside get repos')
+  db.findTop25()
+    .then((result) => {
+      console.log('result from top25: ', result);
+      res.send(result);
+    })
+    .catch((error) => {
+      console.log('error from top25: ', error);
+    })
+  // console.log('inside get /repos');
 });
 
 let port = 1128;

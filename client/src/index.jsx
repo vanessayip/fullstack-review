@@ -8,7 +8,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = { 
-      repos: [{name: 'bob', url: 'www.github.com/bob/hello'}]
+      repos: []
     }
 
   }
@@ -37,8 +37,16 @@ class App extends React.Component {
     $.ajax({
       type: 'GET',
       url: '/repos',
-      // data: {searchTerm: term}
-    });  
+      contentType: 'application/json',
+    })
+    .done((result) => {
+      // console.log('result from get repos: ', result);
+      this.setState({repos: result});
+      console.log('inside state: ', this.state.repos);
+    })
+    .fail((error) => {
+      console.log('error from get repos:', error);
+    })  
   }
 }
 
